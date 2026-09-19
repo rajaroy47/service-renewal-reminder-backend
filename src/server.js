@@ -551,7 +551,7 @@ app.get("/api/export/excel", requireAuth, async (_, res) => {
 // ==================================================================
 // Email reminders (Nodemailer)
 // ==================================================================
-const EMAIL_REMINDER_DAYS = [15, 10, 5, 3];
+const EMAIL_REMINDER_DAYS = [15, 10, 5, 3, 1];
 
 function currentMilestone(remaining) {
   const sorted = [...EMAIL_REMINDER_DAYS].sort((a, b) => a - b); // [5, 10, 15]
