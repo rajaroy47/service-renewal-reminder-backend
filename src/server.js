@@ -15,37 +15,30 @@ const port = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN?.split(",") || "*"
-  })
+    origin: process.env.CORS_ORIGIN?.split(",") || "*",
+  }),
 );
 
 app.use(express.json());
-
 
 // ==================================================================
 // Auth config
 // ==================================================================
 
-const JWT_SECRET =
-  process.env.JWT_SECRET ||
-  "please-change-this-secret-in-env";
+const JWT_SECRET = process.env.JWT_SECRET || "please-change-this-secret-in-env";
 
-const TOKEN_EXPIRES_IN =
-  process.env.TOKEN_EXPIRES_IN || "12h";
+const TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN || "12h";
 
-const DEFAULT_ADMIN_USERNAME =
-  process.env.ADMIN_USERNAME || "admin";
+const DEFAULT_ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
 
-const DEFAULT_ADMIN_PASSWORD =
-  process.env.ADMIN_PASSWORD || "Admin@123";
+const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin@123";
 
 if (!process.env.JWT_SECRET) {
   console.warn(
     "[auth] WARNING: JWT_SECRET is not set in .env — using an insecure default. " +
-    "Set JWT_SECRET in backend/.env before using this in production."
+      "Set JWT_SECRET in backend/.env before using this in production.",
   );
 }
-
 
 // ==================================================================
 // Schemas
@@ -57,151 +50,146 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    lowercase: true
+    lowercase: true,
   },
 
   passwordHash: {
     type: String,
-    required: true
+    required: true,
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 const User = mongoose.model("User", userSchema);
-
 
 // ------------------------------------------------------------------
 // Client record
 // ------------------------------------------------------------------
 
 const clientSchema = new mongoose.Schema({
-
   partyName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
 
   firmName: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   userId: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   password: {
     type: String,
-    default: ""
+    default: "",
   },
 
   mobileNo: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   emailId: {
     type: String,
     trim: true,
     lowercase: true,
-    default: ""
+    default: "",
   },
 
   licenseNumber: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   licenseType: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   clientNumber: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   designation: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   kob: {
     type: String,
     trim: true,
-    default: ""
+    default: "",
   },
 
   expiredDate: {
     type: Date,
-    required: true
+    required: true,
   },
 
   expiredDateFormat: {
     type: String,
-    default: "dd-mm-yyyy"
+    default: "dd-mm-yyyy",
   },
 
   lastRenewedAt: {
     type: Date,
-    default: null
+    default: null,
   },
 
   renewed: {
     type: Boolean,
-    default: false
+    default: false,
   },
 
   dismissedOn: {
     type: String,
-    default: null
+    default: null,
   },
 
   remindersSent: {
     type: [Number],
-    default: []
+    default: [],
   },
 
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
 
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
-
+    default: Date.now,
+  },
 });
 
 const Client = mongoose.model("Client", clientSchema);
-
 
 // ==================================================================
 // Client options
 // ==================================================================
 
 const CLIENT_OPTIONS = {
-
   licenseType: [
     "State License",
     "Central License",
     "Registration",
-    "Basic Registration"
+    "Basic Registration",
   ],
 
   designation: [
@@ -211,7 +199,7 @@ const CLIENT_OPTIONS = {
     "DIRECTOR",
     "COMPANY",
     "AUTHORIZED SIGNATORY",
-    "KARTA"
+    "KARTA",
   ],
 
   kob: [
@@ -228,61 +216,33 @@ const CLIENT_OPTIONS = {
     "Marketer",
     "Importer/Wholesaler/Distributor/Retailer/Supplier/Marketer/Exporter",
     "Food Service- Restaurant",
-    "Hotel"
-  ]
-
+    "Hotel",
+  ],
 };
 
 const DEFAULT_DATE_FORMAT = "dd-mm-yyyy";
-
 
 // ==================================================================
 // Date helpers
 // ==================================================================
 
 function atMidnight(d) {
+  const x = d instanceof Date ? d : new Date(d);
 
-  const x =
-    d instanceof Date
-      ? d
-      : new Date(d);
-
-  return new Date(
-    x.getFullYear(),
-    x.getMonth(),
-    x.getDate(),
-    0,
-    0,
-    0,
-    0
-  );
-
+  return new Date(x.getFullYear(), x.getMonth(), x.getDate(), 0, 0, 0, 0);
 }
-
 
 function daysUntil(date) {
-
   if (!date) return null;
 
-  const today =
-    atMidnight(new Date());
+  const today = atMidnight(new Date());
 
-  const expiry =
-    atMidnight(date);
+  const expiry = atMidnight(date);
 
-  return Math.round(
-    (expiry - today) / 86400000
-  );
-
+  return Math.round((expiry - today) / 86400000);
 }
 
-
-function isValidDateParts(
-  year,
-  month,
-  day
-) {
-
+function isValidDateParts(year, month, day) {
   if (
     !Number.isInteger(year) ||
     !Number.isInteger(month) ||
@@ -291,40 +251,22 @@ function isValidDateParts(
     return false;
   }
 
-  const d =
-    new Date(
-      year,
-      month - 1,
-      day
-    );
+  const d = new Date(year, month - 1, day);
 
   return (
     d.getFullYear() === year &&
     d.getMonth() === month - 1 &&
     d.getDate() === day
   );
-
 }
 
-
 function parseDate(value) {
-
-  if (
-    value === null ||
-    value === undefined ||
-    value === ""
-  ) {
+  if (value === null || value === undefined || value === "") {
     return null;
   }
 
-
   if (value instanceof Date) {
-
-    if (
-      Number.isNaN(
-        value.getTime()
-      )
-    ) {
+    if (Number.isNaN(value.getTime())) {
       return null;
     }
 
@@ -335,93 +277,34 @@ function parseDate(value) {
       0,
       0,
       0,
-      0
+      0,
     );
-
   }
 
-
   if (typeof value === "number") {
+    const parsed = XLSX.SSF.parse_date_code(value);
 
-    const parsed =
-      XLSX.SSF.parse_date_code(value);
-
-    if (
-      !parsed ||
-      !isValidDateParts(
-        parsed.y,
-        parsed.m,
-        parsed.d
-      )
-    ) {
+    if (!parsed || !isValidDateParts(parsed.y, parsed.m, parsed.d)) {
       return null;
     }
 
-    return new Date(
-      parsed.y,
-      parsed.m - 1,
-      parsed.d,
-      0,
-      0,
-      0,
-      0
-    );
-
+    return new Date(parsed.y, parsed.m - 1, parsed.d, 0, 0, 0, 0);
   }
 
+  const text = String(value).trim();
 
-  const text =
-    String(value).trim();
-
-
-  let match =
-    text.match(
-      /^(\d{4})-(\d{1,2})-(\d{1,2})$/
-    );
-
+  let match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
 
   if (match) {
+    const [, y, m, d] = match.map(Number);
 
-    const [
-      ,
-      y,
-      m,
-      d
-    ] = match.map(Number);
-
-    return isValidDateParts(
-      y,
-      m,
-      d
-    )
-      ? new Date(
-          y,
-          m - 1,
-          d,
-          0,
-          0,
-          0,
-          0
-        )
-      : null;
-
+    return isValidDateParts(y, m, d) ? new Date(y, m - 1, d, 0, 0, 0, 0) : null;
   }
 
-
-  match =
-    text.match(
-      /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/
-    );
-
+  match = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
 
   if (match) {
-
-    let [
-      ,
-      d,
-      m,
-      y
-    ] = match;
+    let [, d, m, y] = match;
 
     if (y.length === 2) {
       y = `20${y}`;
@@ -431,1491 +314,788 @@ function parseDate(value) {
     m = Number(m);
     y = Number(y);
 
-    return isValidDateParts(
-      y,
-      m,
-      d
-    )
-      ? new Date(
-          y,
-          m - 1,
-          d,
-          0,
-          0,
-          0,
-          0
-        )
-      : null;
-
+    return isValidDateParts(y, m, d) ? new Date(y, m - 1, d, 0, 0, 0, 0) : null;
   }
 
+  const date = new Date(text);
 
-  const date =
-    new Date(text);
-
-
-  return Number.isNaN(
-    date.getTime()
-  )
+  return Number.isNaN(date.getTime())
     ? null
-    : new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        0,
-        0,
-        0,
-        0
-      );
-
+    : new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
 }
 
-
 function normalizeDateFormat(format) {
-
-  if (
-    !format ||
-    typeof format !== "string"
-  ) {
+  if (!format || typeof format !== "string") {
     return DEFAULT_DATE_FORMAT;
   }
 
-  const cleaned =
-    format
-      .trim()
-      .replace(/\\-/g, "-")
-      .replace(/\\\//g, "/");
+  const cleaned = format.trim().replace(/\\-/g, "-").replace(/\\\//g, "/");
 
-  const lower =
-    cleaned.toLowerCase();
+  const lower = cleaned.toLowerCase();
 
   if (
     lower.includes("yy") &&
-    (
-      lower.includes("dd") ||
-      lower.includes("d")
-    ) &&
-    (
-      lower.includes("mm") ||
-      lower.includes("m")
-    )
+    (lower.includes("dd") || lower.includes("d")) &&
+    (lower.includes("mm") || lower.includes("m"))
   ) {
     return cleaned;
   }
 
   return DEFAULT_DATE_FORMAT;
-
 }
 
-
-function formatDateByPattern(
-  value,
-  pattern = DEFAULT_DATE_FORMAT
-) {
-
-  const date =
-    parseDate(value);
+function formatDateByPattern(value, pattern = DEFAULT_DATE_FORMAT) {
+  const date = parseDate(value);
 
   if (!date) return "";
 
-  const d =
-    String(
-      date.getDate()
-    ).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
 
-  const m =
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
 
-  const y =
-    String(
-      date.getFullYear()
-    );
+  const y = String(date.getFullYear());
 
-  const yy =
-    y.slice(-2);
+  const yy = y.slice(-2);
 
-  let out =
-    pattern;
+  let out = pattern;
 
-  out =
-    out
-      .replace(/yyyy/gi, y)
-      .replace(/yy/gi, yy);
+  out = out.replace(/yyyy/gi, y).replace(/yy/gi, yy);
 
-  out =
-    out.replace(/dd/gi, d);
+  out = out.replace(/dd/gi, d);
 
-  out =
-    out.replace(
-      /mm/gi,
-      m
-    );
+  out = out.replace(/mm/gi, m);
 
-  out =
-    out.replace(
-      /d/g,
-      String(date.getDate())
-    );
+  out = out.replace(/d/g, String(date.getDate()));
 
-  out =
-    out.replace(
-      /m/g,
-      String(date.getMonth() + 1)
-    );
+  out = out.replace(/m/g, String(date.getMonth() + 1));
 
   return out;
-
 }
 
+function dateKey(date = new Date()) {
+  const d = date instanceof Date ? date : new Date(date);
 
-function dateKey(
-  date = new Date()
-) {
+  const y = d.getFullYear();
 
-  const d =
-    date instanceof Date
-      ? date
-      : new Date(date);
+  const m = String(d.getMonth() + 1).padStart(2, "0");
 
-  const y =
-    d.getFullYear();
-
-  const m =
-    String(
-      d.getMonth() + 1
-    ).padStart(2, "0");
-
-  const day =
-    String(
-      d.getDate()
-    ).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
 
   return `${y}-${m}-${day}`;
-
 }
-
 
 const REMINDER_WINDOW_DAYS = 15;
 
-
 function reminderDaysLeft(client) {
+  const remaining = daysUntil(client.expiredDate);
 
-  const remaining =
-    daysUntil(
-      client.expiredDate
-    );
-
-  return remaining <= REMINDER_WINDOW_DAYS
-    ? remaining
-    : null;
-
+  return remaining <= REMINDER_WINDOW_DAYS ? remaining : null;
 }
-
 
 // ==================================================================
 // Auth helpers
 // ==================================================================
 
 function signToken(user) {
-
   return jwt.sign(
     {
       sub: user._id.toString(),
-      username: user.username
+      username: user.username,
     },
     JWT_SECRET,
     {
-      expiresIn:
-        TOKEN_EXPIRES_IN
-    }
+      expiresIn: TOKEN_EXPIRES_IN,
+    },
   );
-
 }
 
+function requireAuth(req, res, next) {
+  const header = req.headers.authorization || "";
 
-function requireAuth(
-  req,
-  res,
-  next
-) {
+  const [scheme, token] = header.split(" ");
 
-  const header =
-    req.headers.authorization || "";
-
-  const [
-    scheme,
-    token
-  ] =
-    header.split(" ");
-
-  if (
-    scheme !== "Bearer" ||
-    !token
-  ) {
-
+  if (scheme !== "Bearer" || !token) {
     return res.status(401).json({
-      message:
-        "Authentication required. Please log in."
+      message: "Authentication required. Please log in.",
     });
-
   }
-
 
   try {
+    const payload = jwt.verify(token, JWT_SECRET);
 
-    const payload =
-      jwt.verify(
-        token,
-        JWT_SECRET
-      );
-
-    req.user =
-      payload;
+    req.user = payload;
 
     next();
-
   } catch (e) {
-
     return res.status(401).json({
-      message:
-        "Session expired or invalid. Please log in again."
+      message: "Session expired or invalid. Please log in again.",
     });
-
   }
-
 }
 
-
 async function ensureDefaultAdmin() {
-
-  const count =
-    await User.countDocuments();
+  const count = await User.countDocuments();
 
   if (count > 0) return;
 
-  const passwordHash =
-    await bcrypt.hash(
-      DEFAULT_ADMIN_PASSWORD,
-      10
-    );
+  const passwordHash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10);
 
   await User.create({
-    username:
-      DEFAULT_ADMIN_USERNAME.toLowerCase(),
+    username: DEFAULT_ADMIN_USERNAME.toLowerCase(),
 
-    passwordHash
+    passwordHash,
   });
 
   console.log(
-    "================================================================="
+    "=================================================================",
   );
+
+  console.log(" No users found — a default admin account was created:");
+
+  console.log(`   Username: ${DEFAULT_ADMIN_USERNAME}`);
+
+  console.log(`   Password: ${DEFAULT_ADMIN_PASSWORD}`);
+
+  console.log(" Please log in and change this password immediately.");
 
   console.log(
-    " No users found — a default admin account was created:"
+    "=================================================================",
   );
-
-  console.log(
-    `   Username: ${DEFAULT_ADMIN_USERNAME}`
-  );
-
-  console.log(
-    `   Password: ${DEFAULT_ADMIN_PASSWORD}`
-  );
-
-  console.log(
-    " Please log in and change this password immediately."
-  );
-
-  console.log(
-    "================================================================="
-  );
-
 }
-
 
 // ==================================================================
 // Auth routes
 // ==================================================================
 
-app.get(
-  "/api/health",
-  (_, res) =>
-    res.json({
-      ok: true
-    })
+app.get("/api/health", (_, res) =>
+  res.json({
+    ok: true,
+  }),
 );
 
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const username = String(req.body.username || "")
+      .trim()
+      .toLowerCase();
 
-app.post(
-  "/api/auth/login",
-  async (req, res) => {
+    const password = String(req.body.password || "");
 
-    try {
-
-      const username =
-        String(
-          req.body.username || ""
-        )
-          .trim()
-          .toLowerCase();
-
-      const password =
-        String(
-          req.body.password || ""
-        );
-
-      if (
-        !username ||
-        !password
-      ) {
-
-        return res.status(400).json({
-          message:
-            "Username and password are required."
-        });
-
-      }
-
-      const user =
-        await User.findOne({
-          username
-        });
-
-      if (!user) {
-
-        return res.status(401).json({
-          message:
-            "Invalid username or password."
-        });
-
-      }
-
-      const ok =
-        await bcrypt.compare(
-          password,
-          user.passwordHash
-        );
-
-      if (!ok) {
-
-        return res.status(401).json({
-          message:
-            "Invalid username or password."
-        });
-
-      }
-
-      const token =
-        signToken(user);
-
-      res.json({
-        token,
-        username:
-          user.username
+    if (!username || !password) {
+      return res.status(400).json({
+        message: "Username and password are required.",
       });
-
-    } catch (e) {
-
-      res.status(500).json({
-        message:
-          e.message
-      });
-
     }
 
-  }
-);
-
-
-app.get(
-  "/api/auth/me",
-  requireAuth,
-  (req, res) => {
-
-    res.json({
-      username:
-        req.user.username
+    const user = await User.findOne({
+      username,
     });
 
-  }
-);
-
-
-app.post(
-  "/api/auth/change-password",
-  requireAuth,
-  async (req, res) => {
-
-    try {
-
-      const {
-        currentPassword,
-        newPassword
-      } =
-        req.body;
-
-      if (
-        !currentPassword ||
-        !newPassword ||
-        newPassword.length < 6
-      ) {
-
-        return res.status(400).json({
-          message:
-            "Current password and a new password (min 6 characters) are required."
-        });
-
-      }
-
-      const user =
-        await User.findById(
-          req.user.sub
-        );
-
-      if (!user) {
-
-        return res.status(404).json({
-          message:
-            "User not found."
-        });
-
-      }
-
-      const ok =
-        await bcrypt.compare(
-          currentPassword,
-          user.passwordHash
-        );
-
-      if (!ok) {
-
-        return res.status(401).json({
-          message:
-            "Current password is incorrect."
-        });
-
-      }
-
-      user.passwordHash =
-        await bcrypt.hash(
-          newPassword,
-          10
-        );
-
-      await user.save();
-
-      res.json({
-        message:
-          "Password updated successfully."
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid username or password.",
       });
-
-    } catch (e) {
-
-      res.status(500).json({
-        message:
-          e.message
-      });
-
     }
 
-  }
-);
+    const ok = await bcrypt.compare(password, user.passwordHash);
 
+    if (!ok) {
+      return res.status(401).json({
+        message: "Invalid username or password.",
+      });
+    }
+
+    const token = signToken(user);
+
+    res.json({
+      token,
+      username: user.username,
+    });
+  } catch (e) {
+    res.status(500).json({
+      message: e.message,
+    });
+  }
+});
+
+app.get("/api/auth/me", requireAuth, (req, res) => {
+  res.json({
+    username: req.user.username,
+  });
+});
+
+app.post("/api/auth/change-password", requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        message:
+          "Current password and a new password (min 6 characters) are required.",
+      });
+    }
+
+    const user = await User.findById(req.user.sub);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    const ok = await bcrypt.compare(currentPassword, user.passwordHash);
+
+    if (!ok) {
+      return res.status(401).json({
+        message: "Current password is incorrect.",
+      });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await user.save();
+
+    res.json({
+      message: "Password updated successfully.",
+    });
+  } catch (e) {
+    res.status(500).json({
+      message: e.message,
+    });
+  }
+});
 
 // ==================================================================
 // Client management
 // ==================================================================
 
-app.get(
-  "/api/clients/options",
-  requireAuth,
-  (_, res) => {
+app.get("/api/clients/options", requireAuth, (_, res) => {
+  res.json(CLIENT_OPTIONS);
+});
 
-    res.json(
-      CLIENT_OPTIONS
-    );
+app.get("/api/clients", requireAuth, async (req, res) => {
+  try {
+    const search = String(req.query.search || "").trim();
 
+    const filter = search
+      ? {
+          $or: [
+            {
+              partyName: new RegExp(search, "i"),
+            },
+
+            {
+              firmName: new RegExp(search, "i"),
+            },
+
+            {
+              mobileNo: new RegExp(search, "i"),
+            },
+
+            {
+              emailId: new RegExp(search, "i"),
+            },
+
+            {
+              licenseNumber: new RegExp(search, "i"),
+            },
+
+            {
+              clientNumber: new RegExp(search, "i"),
+            },
+
+            {
+              userId: new RegExp(search, "i"),
+            },
+          ],
+        }
+      : {};
+
+    const clients = await Client.find(filter).sort({
+      expiredDate: 1,
+    });
+
+    res.json(clients);
+  } catch (e) {
+    res.status(500).json({
+      message: e.message,
+    });
   }
-);
+});
 
+app.post("/api/clients", requireAuth, async (req, res) => {
+  try {
+    const expiredDate = parseDate(req.body.expiredDate);
 
-app.get(
-  "/api/clients",
-  requireAuth,
-  async (req, res) => {
-
-    try {
-
-      const search =
-        String(
-          req.query.search || ""
-        ).trim();
-
-      const filter =
-        search
-          ? {
-              $or: [
-
-                {
-                  partyName:
-                    new RegExp(
-                      search,
-                      "i"
-                    )
-                },
-
-                {
-                  firmName:
-                    new RegExp(
-                      search,
-                      "i"
-                    )
-                },
-
-                {
-                  mobileNo:
-                    new RegExp(
-                      search,
-                      "i"
-                    )
-                },
-
-                {
-                  emailId:
-                    new RegExp(
-                      search,
-                      "i"
-                    )
-                },
-
-                {
-                  licenseNumber:
-                    new RegExp(
-                      search,
-                      "i"
-                    )
-                },
-
-                {
-                  clientNumber:
-                    new RegExp(
-                      search,
-                      "i"
-                    )
-                },
-
-                {
-                  userId:
-                    new RegExp(
-                      search,
-                      "i"
-                    )
-                }
-
-              ]
-            }
-          : {};
-
-      const clients =
-        await Client.find(
-          filter
-        ).sort({
-          expiredDate: 1
-        });
-
-      res.json(
-        clients
-      );
-
-    } catch (e) {
-
-      res.status(500).json({
-        message:
-          e.message
+    if (!req.body.partyName || !String(req.body.partyName).trim()) {
+      return res.status(400).json({
+        message: "Party name is required.",
       });
-
     }
 
+    if (!expiredDate) {
+      return res.status(400).json({
+        message: "A valid expired date is required.",
+      });
+    }
+
+    const client = await Client.create({
+      partyName: req.body.partyName,
+
+      firmName: req.body.firmName,
+
+      userId: req.body.userId,
+
+      password: req.body.password,
+
+      mobileNo: req.body.mobileNo,
+
+      emailId: req.body.emailId,
+
+      licenseNumber: req.body.licenseNumber,
+
+      licenseType: req.body.licenseType,
+
+      clientNumber: req.body.clientNumber,
+
+      designation: req.body.designation,
+
+      kob: req.body.kob,
+
+      expiredDate,
+
+      expiredDateFormat: normalizeDateFormat(req.body.expiredDateFormat),
+    });
+
+    res.status(201).json(client);
+  } catch (e) {
+    res.status(400).json({
+      message: e.message,
+    });
   }
-);
+});
 
+app.put("/api/clients/:id", requireAuth, async (req, res) => {
+  try {
+    const existing = await Client.findById(req.params.id);
 
-app.post(
-  "/api/clients",
-  requireAuth,
-  async (req, res) => {
+    if (!existing) {
+      return res.status(404).json({
+        message: "Client not found",
+      });
+    }
 
-    try {
+    const update = {
+      partyName: req.body.partyName,
 
-      const expiredDate =
-        parseDate(
-          req.body.expiredDate
-        );
+      firmName: req.body.firmName,
 
-      if (
-        !req.body.partyName ||
-        !String(
-          req.body.partyName
-        ).trim()
-      ) {
+      userId: req.body.userId,
 
-        return res.status(400).json({
-          message:
-            "Party name is required."
-        });
+      password: req.body.password,
 
-      }
+      mobileNo: req.body.mobileNo,
+
+      emailId: req.body.emailId,
+
+      licenseNumber: req.body.licenseNumber,
+
+      licenseType: req.body.licenseType,
+
+      clientNumber: req.body.clientNumber,
+
+      designation: req.body.designation,
+
+      kob: req.body.kob,
+
+      updatedAt: new Date(),
+    };
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "expiredDate")) {
+      const expiredDate = parseDate(req.body.expiredDate);
 
       if (!expiredDate) {
-
         return res.status(400).json({
-          message:
-            "A valid expired date is required."
+          message: "Valid expired date is required",
         });
-
       }
 
-      const client =
-        await Client.create({
+      update.expiredDate = expiredDate;
 
-          partyName:
-            req.body.partyName,
-
-          firmName:
-            req.body.firmName,
-
-          userId:
-            req.body.userId,
-
-          password:
-            req.body.password,
-
-          mobileNo:
-            req.body.mobileNo,
-
-          emailId:
-            req.body.emailId,
-
-          licenseNumber:
-            req.body.licenseNumber,
-
-          licenseType:
-            req.body.licenseType,
-
-          clientNumber:
-            req.body.clientNumber,
-
-          designation:
-            req.body.designation,
-
-          kob:
-            req.body.kob,
-
-          expiredDate,
-
-          expiredDateFormat:
-            normalizeDateFormat(
-              req.body.expiredDateFormat
-            )
-
-        });
-
-      res.status(201).json(
-        client
+      update.expiredDateFormat = normalizeDateFormat(
+        req.body.expiredDateFormat || existing.expiredDateFormat,
       );
 
-    } catch (e) {
-
-      res.status(400).json({
-        message:
-          e.message
-      });
-
+      if (existing.expiredDate?.getTime() !== expiredDate.getTime()) {
+        update.remindersSent = [];
+      }
     }
 
+    if (!update.partyName || !String(update.partyName).trim()) {
+      return res.status(400).json({
+        message: "Party name is required.",
+      });
+    }
+
+    const client = await Client.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.json(client);
+  } catch (e) {
+    res.status(400).json({
+      message: e.message,
+    });
   }
-);
+});
 
+app.delete("/api/clients/:id", requireAuth, async (req, res) => {
+  try {
+    const client = await Client.findByIdAndDelete(req.params.id);
 
-app.put(
-  "/api/clients/:id",
-  requireAuth,
-  async (req, res) => {
+    if (!client) {
+      return res.status(404).json({
+        message: "Client not found",
+      });
+    }
 
-    try {
+    res.json({
+      message: "Client deleted.",
+    });
+  } catch (e) {
+    res.status(400).json({
+      message: e.message,
+    });
+  }
+});
 
-      const existing =
-        await Client.findById(
-          req.params.id
-        );
+app.post("/api/clients/:id/renew", requireAuth, async (req, res) => {
+  try {
+    const existing = await Client.findById(req.params.id);
 
-      if (!existing) {
+    if (!existing) {
+      return res.status(404).json({
+        message: "Client not found",
+      });
+    }
 
-        return res.status(404).json({
-          message:
-            "Client not found"
-        });
+    const update = {
+      renewed: true,
 
-      }
+      lastRenewedAt: new Date(),
 
-      const update = {
+      dismissedOn: null,
 
-        partyName:
-          req.body.partyName,
+      updatedAt: new Date(),
+    };
 
-        firmName:
-          req.body.firmName,
+    if (req.body.newExpiredDate) {
+      const newExpiredDate = parseDate(req.body.newExpiredDate);
 
-        userId:
-          req.body.userId,
-
-        password:
-          req.body.password,
-
-        mobileNo:
-          req.body.mobileNo,
-
-        emailId:
-          req.body.emailId,
-
-        licenseNumber:
-          req.body.licenseNumber,
-
-        licenseType:
-          req.body.licenseType,
-
-        clientNumber:
-          req.body.clientNumber,
-
-        designation:
-          req.body.designation,
-
-        kob:
-          req.body.kob,
-
-        updatedAt:
-          new Date()
-
-      };
-
-
-      if (
-        Object.prototype.hasOwnProperty.call(
-          req.body,
-          "expiredDate"
-        )
-      ) {
-
-        const expiredDate =
-          parseDate(
-            req.body.expiredDate
-          );
-
-        if (!expiredDate) {
-
-          return res.status(400).json({
-            message:
-              "Valid expired date is required"
-          });
-
-        }
-
-        update.expiredDate =
-          expiredDate;
-
-        update.expiredDateFormat =
-          normalizeDateFormat(
-            req.body.expiredDateFormat ||
-            existing.expiredDateFormat
-          );
-
-
-        if (
-          existing.expiredDate?.getTime() !==
-          expiredDate.getTime()
-        ) {
-
-          update.remindersSent =
-            [];
-
-        }
-
-      }
-
-
-      if (
-        !update.partyName ||
-        !String(
-          update.partyName
-        ).trim()
-      ) {
-
+      if (!newExpiredDate) {
         return res.status(400).json({
-          message:
-            "Party name is required."
+          message: "Invalid new expired date.",
         });
-
       }
 
+      update.expiredDate = newExpiredDate;
 
-      const client =
-        await Client.findByIdAndUpdate(
-          req.params.id,
-          update,
-          {
-            new: true,
-            runValidators: true
-          }
-        );
-
-      res.json(
-        client
+      update.expiredDateFormat = normalizeDateFormat(
+        existing.expiredDateFormat,
       );
 
-    } catch (e) {
-
-      res.status(400).json({
-        message:
-          e.message
-      });
-
+      if (existing.expiredDate?.getTime() !== newExpiredDate.getTime()) {
+        update.remindersSent = [];
+      }
     }
 
+    const client = await Client.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+    });
+
+    res.json(client);
+  } catch (e) {
+    res.status(400).json({
+      message: e.message,
+    });
   }
-);
-
-
-app.delete(
-  "/api/clients/:id",
-  requireAuth,
-  async (req, res) => {
-
-    try {
-
-      const client =
-        await Client.findByIdAndDelete(
-          req.params.id
-        );
-
-      if (!client) {
-
-        return res.status(404).json({
-          message:
-            "Client not found"
-        });
-
-      }
-
-      res.json({
-        message:
-          "Client deleted."
-      });
-
-    } catch (e) {
-
-      res.status(400).json({
-        message:
-          e.message
-      });
-
-    }
-
-  }
-);
-
-
-app.post(
-  "/api/clients/:id/renew",
-  requireAuth,
-  async (req, res) => {
-
-    try {
-
-      const existing =
-        await Client.findById(
-          req.params.id
-        );
-
-      if (!existing) {
-
-        return res.status(404).json({
-          message:
-            "Client not found"
-        });
-
-      }
-
-      const update = {
-
-        renewed: true,
-
-        lastRenewedAt:
-          new Date(),
-
-        dismissedOn:
-          null,
-
-        updatedAt:
-          new Date()
-
-      };
-
-
-      if (
-        req.body.newExpiredDate
-      ) {
-
-        const newExpiredDate =
-          parseDate(
-            req.body.newExpiredDate
-          );
-
-        if (!newExpiredDate) {
-
-          return res.status(400).json({
-            message:
-              "Invalid new expired date."
-          });
-
-        }
-
-        update.expiredDate =
-          newExpiredDate;
-
-        update.expiredDateFormat =
-          normalizeDateFormat(
-            existing.expiredDateFormat
-          );
-
-
-        if (
-          existing.expiredDate?.getTime() !==
-          newExpiredDate.getTime()
-        ) {
-
-          update.remindersSent =
-            [];
-
-        }
-
-      }
-
-
-      const client =
-        await Client.findByIdAndUpdate(
-          req.params.id,
-          update,
-          {
-            new: true
-          }
-        );
-
-      res.json(
-        client
-      );
-
-    } catch (e) {
-
-      res.status(400).json({
-        message:
-          e.message
-      });
-
-    }
-
-  }
-);
-
+});
 
 // ==================================================================
 // Reminder feed
 // ==================================================================
 
-app.post(
-  "/api/clients/:id/dismiss-today",
-  async (req, res) => {
+app.post("/api/clients/:id/dismiss-today", async (req, res) => {
+  try {
+    const client = await Client.findByIdAndUpdate(
+      req.params.id,
+      {
+        dismissedOn: dateKey(),
 
-    try {
+        updatedAt: new Date(),
+      },
+      {
+        new: true,
+      },
+    );
 
-      const client =
-        await Client.findByIdAndUpdate(
-          req.params.id,
-          {
-            dismissedOn:
-              dateKey(),
+    res.json(client);
+  } catch (e) {
+    res.status(400).json({
+      message: e.message,
+    });
+  }
+});
 
-            updatedAt:
-              new Date()
-          },
-          {
-            new: true
-          }
-        );
+app.get("/api/reminders", async (_, res) => {
+  try {
+    const clients = await Client.find({
+      expiredDate: {
+        $exists: true,
+      },
+    });
 
-      res.json(
-        client
+    const reminders = clients
+
+      .map((client) => {
+        const remaining = reminderDaysLeft(client);
+
+        return {
+          ...client.toObject(),
+
+          daysRemaining: remaining,
+
+          dismissedToday: client.dismissedOn === dateKey(),
+        };
+      })
+
+      .filter(
+        (client) => client.daysRemaining !== null && !client.dismissedToday,
       );
 
-    } catch (e) {
-
-      res.status(400).json({
-        message:
-          e.message
-      });
-
-    }
-
+    res.json(reminders);
+  } catch (e) {
+    res.status(500).json({
+      message: e.message,
+    });
   }
-);
-
-
-app.get(
-  "/api/reminders",
-  async (_, res) => {
-
-    try {
-
-      const clients =
-        await Client.find({
-          expiredDate: {
-            $exists: true
-          }
-        });
-
-      const reminders =
-        clients
-
-          .map(client => {
-
-            const remaining =
-              reminderDaysLeft(
-                client
-              );
-
-            return {
-
-              ...client.toObject(),
-
-              daysRemaining:
-                remaining,
-
-              dismissedToday:
-                client.dismissedOn ===
-                dateKey()
-
-            };
-
-          })
-
-          .filter(
-            client =>
-              client.daysRemaining !== null &&
-              !client.dismissedToday
-          );
-
-      res.json(
-        reminders
-      );
-
-    } catch (e) {
-
-      res.status(500).json({
-        message:
-          e.message
-      });
-
-    }
-
-  }
-);
-
+});
 
 // ==================================================================
 // Export Excel
 // ==================================================================
 
-app.get(
-  "/api/export/excel",
-  requireAuth,
-  async (_, res) => {
+const getHyphenatedDateTime = (ts = Date.now()) => {
+  const date = new Date(ts);
+  const d = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+  const t = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toLowerCase().replace(' ', '-');
+  return `${d}-${t}`;
+};
 
-    try {
-
-      const clients =
-        await Client.find({})
-          .sort({
-            expiredDate: 1
-          })
-          .lean();
-
-      const headers = [
-
-        "party_name",
-        "firm_name",
-        "user_id",
-        "password",
-        "mobile_no",
-        "email_id",
-        "license_number",
-        "license_type",
-        "client_number",
-        "designation",
-        "kob",
-        "expired_date",
-        "last_renewed_at"
-
-      ];
+// Usage:
+// console.log(getHyphenatedDateTime()); // "21-Sep-2026-01:42:15-pm"
 
 
-      const data =
-        clients.map(c => ({
+app.get("/api/export/excel", requireAuth, async (_, res) => {
+  try {
+    const clients = await Client.find({})
+      .sort({
+        expiredDate: 1,
+      })
+      .lean();
 
-          party_name:
-            c.partyName ?? "",
+    const headers = [
+      "party_name",
+      "firm_name",
+      "user_id",
+      "password",
+      "mobile_no",
+      "email_id",
+      "license_number",
+      "license_type",
+      "client_number",
+      "designation",
+      "kob",
+      "expired_date",
+      "last_renewed_at",
+    ];
 
-          firm_name:
-            c.firmName ?? "",
+    const data = clients.map((c) => ({
+      party_name: c.partyName ?? "",
 
-          user_id:
-            c.userId ?? "",
+      firm_name: c.firmName ?? "",
 
-          password:
-            c.password ?? "",
+      user_id: c.userId ?? "",
 
-          mobile_no:
-            c.mobileNo ?? "",
+      password: c.password ?? "",
 
-          email_id:
-            c.emailId ?? "",
+      mobile_no: c.mobileNo ?? "",
 
-          license_number:
-            c.licenseNumber ?? "",
+      email_id: c.emailId ?? "",
 
-          license_type:
-            c.licenseType ?? "",
+      license_number: c.licenseNumber ?? "",
 
-          client_number:
-            c.clientNumber ?? "",
+      license_type: c.licenseType ?? "",
 
-          designation:
-            c.designation ?? "",
+      client_number: c.clientNumber ?? "",
 
-          kob:
-            c.kob ?? "",
+      designation: c.designation ?? "",
 
-          expired_date:
-            c.expiredDate
-              ? new Date(
-                  c.expiredDate
-                )
-              : "",
+      kob: c.kob ?? "",
 
-          last_renewed_at:
-            c.lastRenewedAt
-              ? new Date(
-                  c.lastRenewedAt
-                )
-              : ""
+      expired_date: c.expiredDate ? new Date(c.expiredDate) : "",
 
-        }));
+      last_renewed_at: c.lastRenewedAt ? new Date(c.lastRenewedAt) : "",
+    }));
 
+    const ws = XLSX.utils.json_to_sheet(data, {
+      header: headers,
+      cellDates: true,
+    });
 
-      const ws =
-        XLSX.utils.json_to_sheet(
-          data,
-          {
-            header: headers,
-            cellDates: true
-          }
-        );
+    clients.forEach((c, i) => {
+      const row = i + 2;
 
+      if (c.expiredDate && ws[`L${row}`]) {
+        ws[`L${row}`].z = normalizeDateFormat(c.expiredDateFormat);
+      }
 
-      clients.forEach(
-        (c, i) => {
+      if (c.lastRenewedAt && ws[`M${row}`]) {
+        ws[`M${row}`].z = "dd-mm-yyyy hh:mm";
+      }
+    });
 
-          const row =
-            i + 2;
+    const wb = XLSX.utils.book_new();
 
+    XLSX.utils.book_append_sheet(wb, ws, "Clients");
 
-          if (
-            c.expiredDate &&
-            ws[`L${row}`]
-          ) {
+    const buffer = XLSX.write(wb, {
+      type: "buffer",
+      bookType: "xlsx",
+      cellDates: true,
+    });
 
-            ws[`L${row}`].z =
-              normalizeDateFormat(
-                c.expiredDateFormat
-              );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
 
-          }
+    // res.setHeader("Content-Disposition", 'attachment; filename="clients.xlsx"');
 
+    const filename = `clients-${getHyphenatedDateTime()}.xlsx`; 
+    // Result looks like: "clients-21-Sep-2026-01:45:12-pm.xlsx"
 
-          if (
-            c.lastRenewedAt &&
-            ws[`M${row}`]
-          ) {
+    // 3. Set your response headers
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
 
-            ws[`M${row}`].z =
-              "dd-mm-yyyy hh:mm";
-
-          }
-
-        }
-      );
-
-
-      const wb =
-        XLSX.utils.book_new();
-
-
-      XLSX.utils.book_append_sheet(
-        wb,
-        ws,
-        "Clients"
-      );
-
-
-      const buffer =
-        XLSX.write(
-          wb,
-          {
-            type: "buffer",
-            bookType: "xlsx",
-            cellDates: true
-          }
-        );
-
-
-      res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      );
-
-
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="clients.xlsx"'
-      );
-
-
-      res.send(
-        buffer
-      );
-
-    } catch (e) {
-
-      res.status(500).json({
-        message:
-          e.message
-      });
-
-    }
-
+    res.send(buffer);
+  } catch (e) {
+    res.status(500).json({
+      message: e.message,
+    });
   }
-);
-
+});
 
 // ==================================================================
 // Email reminders - Nodemailer
 // ==================================================================
 
-const EMAIL_REMINDER_DAYS = [
-  15,
-  10,
-  5,
-  3,
-  1
-];
+const EMAIL_REMINDER_DAYS = [15, 10, 5, 3, 1];
 
+function currentMilestone(remaining) {
+  const sorted = [...EMAIL_REMINDER_DAYS].sort((a, b) => a - b);
 
-function currentMilestone(
-  remaining
-) {
-
-  const sorted =
-    [
-      ...EMAIL_REMINDER_DAYS
-    ].sort(
-      (a, b) => a - b
-    );
-
-  if (
-    remaining < 0
-  ) {
+  if (remaining < 0) {
     return null;
   }
 
-  if (
-    remaining >
-    sorted[sorted.length - 1]
-  ) {
+  if (remaining > sorted[sorted.length - 1]) {
     return null;
   }
 
-  for (
-    const m of sorted
-  ) {
-
-    if (
-      remaining <= m
-    ) {
+  for (const m of sorted) {
+    if (remaining <= m) {
       return m;
     }
-
   }
 
   return null;
-
 }
 
-
-const EMPLOYEE_NAME =
-  process.env.EMPLOYEE_NAME ||
-  "Team";
-
+const EMPLOYEE_NAME = process.env.EMPLOYEE_NAME || "Team";
 
 const EMPLOYEE_EMAIL =
-  process.env.EMPLOYEE_EMAIL ||
-  process.env.SUJIT_EMAIL ||
-  "";
-
+  process.env.EMPLOYEE_EMAIL || process.env.SUJIT_EMAIL || "";
 
 if (!EMPLOYEE_EMAIL) {
-
   console.warn(
     "[mailer] EMPLOYEE_EMAIL (or SUJIT_EMAIL) is not set in .env — " +
-    "the employee will NOT receive renewal-reminder emails."
+      "the employee will NOT receive renewal-reminder emails.",
   );
-
 }
-
 
 // ==================================================================
 // Nodemailer SMTP
 // ==================================================================
 
-const transporter =
-  nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
 
-    host:
-      process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
 
-    port:
-      Number(
-        process.env.SMTP_PORT
-      ) || 587,
+  secure: process.env.SMTP_SECURE === "true",
 
-    secure:
-      process.env.SMTP_SECURE ===
-      "true",
+  auth: {
+    user: process.env.SMTP_USER,
 
-    auth: {
+    pass: process.env.SMTP_PASS,
+  },
 
-      user:
-        process.env.SMTP_USER,
+  tls: {
+    rejectUnauthorized: false,
+  },
 
-      pass:
-        process.env.SMTP_PASS
+  connectionTimeout: 15000,
 
-    },
+  greetingTimeout: 15000,
 
-    tls: {
+  socketTimeout: 20000,
+});
 
-      rejectUnauthorized:
-        false
-
-    },
-
-    connectionTimeout:
-      15000,
-
-    greetingTimeout:
-      15000,
-
-    socketTimeout:
-      20000
-
-  });
-
-
-transporter.verify(
-  (err) => {
-
-    if (err) {
-
-      console.error(
-        "[mailer] SMTP connection FAILED — reminder emails will not send:",
-        err.message
-      );
-
-    } else {
-
-      console.log(
-        "[mailer] SMTP connection verified OK"
-      );
-
-    }
-
+transporter.verify((err) => {
+  if (err) {
+    console.error(
+      "[mailer] SMTP connection FAILED — reminder emails will not send:",
+      err.message,
+    );
+  } else {
+    console.log("[mailer] SMTP connection verified OK");
   }
-);
-
+});
 
 // ==================================================================
 // Email formatting
 // ==================================================================
 
-function formatDate(
-  date,
-  pattern = DEFAULT_DATE_FORMAT
-) {
-
-  return date
-    ? formatDateByPattern(
-        date,
-        pattern
-      )
-    : "N/A";
-
+function formatDate(date, pattern = DEFAULT_DATE_FORMAT) {
+  return date ? formatDateByPattern(date, pattern) : "N/A";
 }
 
+function buildReminderEmail(client, daysRemaining) {
+  const dayWord = daysRemaining === 1 ? "day" : "days";
 
-function buildReminderEmail(
-  client,
-  daysRemaining
-) {
-
-  const dayWord =
-    daysRemaining === 1
-      ? "day"
-      : "days";
-
-
-  const subject =
-    `Reminder: License for ${client.partyName} expires in ${daysRemaining} ${dayWord}`;
-
+  const subject = `Reminder: License for ${client.partyName} expires in ${daysRemaining} ${dayWord}`;
 
   const text =
-
     `Hi ${client.partyName},\n\n` +
-
     `This is a reminder that the license/registration for ` +
     `${client.firmName || client.partyName} ` +
-
     `is set to expire on ` +
-
-    `${formatDate(
-      client.expiredDate,
-      client.expiredDateFormat
-    )} ` +
-
+    `${formatDate(client.expiredDate, client.expiredDateFormat)} ` +
     `(${daysRemaining} ${dayWord} from today).\n\n` +
-
     `Please renew soon to avoid any interruption.\n\n` +
-
     `Thank you.`;
-
 
   const html = `
 
@@ -1943,10 +1123,7 @@ function buildReminderEmail(
         is set to expire on
 
         <strong>
-          ${formatDate(
-            client.expiredDate,
-            client.expiredDateFormat
-          )}
+          ${formatDate(client.expiredDate, client.expiredDateFormat)}
         </strong>
 
         (<strong>
@@ -1968,67 +1145,32 @@ function buildReminderEmail(
 
   `;
 
-
   return {
     subject,
     text,
-    html
+    html,
   };
-
 }
 
+function buildEmployeeReminderEmail(client, daysRemaining, employeeName) {
+  const dayWord = daysRemaining === 1 ? "day" : "days";
 
-function buildEmployeeReminderEmail(
-  client,
-  daysRemaining,
-  employeeName
-) {
-
-  const dayWord =
-    daysRemaining === 1
-      ? "day"
-      : "days";
-
-
-  const subject =
-    `Renewal Alert: ${client.partyName} expires in ${daysRemaining} ${dayWord}`;
-
+  const subject = `Renewal Alert: ${client.partyName} expires in ${daysRemaining} ${dayWord}`;
 
   const text =
-
     `Hii ${employeeName},\n\n` +
-
     `The party name is ${client.partyName}, ` +
-
     `their plan is expiring in just ` +
-
     `${daysRemaining} ${dayWord}.\n\n` +
-
-    `Firm Name: ${
-      client.firmName || "-"
-    }\n` +
-
-    `Mobile No.: ${
-      client.mobileNo || "-"
-    }\n` +
-
-    `Client Email: ${
-      client.emailId || "-"
-    }\n` +
-
-    `License Number: ${
-      client.licenseNumber || "-"
-    }\n` +
-
-    `Expired Date: ${
-      formatDate(
-        client.expiredDate,
-        client.expiredDateFormat
-      )
-    }\n\n` +
-
+    `Firm Name: ${client.firmName || "-"}\n` +
+    `Mobile No.: ${client.mobileNo || "-"}\n` +
+    `Client Email: ${client.emailId || "-"}\n` +
+    `License Number: ${client.licenseNumber || "-"}\n` +
+    `Expired Date: ${formatDate(
+      client.expiredDate,
+      client.expiredDateFormat,
+    )}\n\n` +
     `Please follow up on the renewal.`;
-
 
   const html = `
 
@@ -2149,10 +1291,7 @@ function buildEmployeeReminderEmail(
           </td>
 
           <td>
-            ${formatDate(
-              client.expiredDate,
-              client.expiredDateFormat
-            )}
+            ${formatDate(client.expiredDate, client.expiredDateFormat)}
           </td>
 
         </tr>
@@ -2172,97 +1311,55 @@ function buildEmployeeReminderEmail(
 
   `;
 
-
   return {
     subject,
     text,
-    html
+    html,
   };
-
 }
 
-
-async function sendReminderEmailToClient(
-  client,
-  daysRemaining
-) {
-
-  const {
-    subject,
-    text,
-    html
-  } =
-    buildReminderEmail(
-      client,
-      daysRemaining
-    );
-
+async function sendReminderEmailToClient(client, daysRemaining) {
+  const { subject, text, html } = buildReminderEmail(client, daysRemaining);
 
   await transporter.sendMail({
+    from: process.env.MAIL_FROM || process.env.SMTP_USER,
 
-    from:
-      process.env.MAIL_FROM ||
-      process.env.SMTP_USER,
-
-    to:
-      client.emailId,
+    to: client.emailId,
 
     subject,
 
     text,
 
-    html
-
+    html,
   });
-
 }
 
-
-async function sendReminderEmailToEmployee(
-  client,
-  daysRemaining
-) {
-
-  const {
-    subject,
-    text,
-    html
-  } =
-    buildEmployeeReminderEmail(
-      client,
-      daysRemaining,
-      EMPLOYEE_NAME
-    );
-
+async function sendReminderEmailToEmployee(client, daysRemaining) {
+  const { subject, text, html } = buildEmployeeReminderEmail(
+    client,
+    daysRemaining,
+    EMPLOYEE_NAME,
+  );
 
   await transporter.sendMail({
+    from: process.env.MAIL_FROM || process.env.SMTP_USER,
 
-    from:
-      process.env.MAIL_FROM ||
-      process.env.SMTP_USER,
-
-    to:
-      EMPLOYEE_EMAIL,
+    to: EMPLOYEE_EMAIL,
 
     subject,
 
     text,
 
-    html
-
+    html,
   });
-
 }
-
 
 // ==================================================================
 // Core reminder job
 // ==================================================================
 
 async function runReminderEmailJob() {
-
   const results = {
-
     sent: [],
 
     skipped: [],
@@ -2271,364 +1368,196 @@ async function runReminderEmailJob() {
 
     employeeNotified: [],
 
-    employeeFailed: []
-
+    employeeFailed: [],
   };
 
+  const clients = await Client.find({
+    expiredDate: {
+      $exists: true,
+    },
+  });
 
-  const clients =
-    await Client.find({
-      expiredDate: {
-        $exists: true
-      }
-    });
+  for (const client of clients) {
+    const remaining = daysUntil(client.expiredDate);
 
+    const alreadySent = client.remindersSent || [];
 
-  for (
-    const client of clients
-  ) {
+    const milestone = currentMilestone(remaining);
 
-    const remaining =
-      daysUntil(
-        client.expiredDate
-      );
-
-
-    const alreadySent =
-      client.remindersSent || [];
-
-
-    const milestone =
-      currentMilestone(
-        remaining
-      );
-
-
-    if (
-      milestone === null
-    ) {
+    if (milestone === null) {
       continue;
     }
 
-
-    if (
-      alreadySent.includes(
-        milestone
-      )
-    ) {
+    if (alreadySent.includes(milestone)) {
       continue;
     }
-
 
     // --------------------------------------------------------------
     // Client email
     // --------------------------------------------------------------
 
     if (!client.emailId) {
-
       results.skipped.push({
-
-        partyName:
-          client.partyName,
+        partyName: client.partyName,
 
         milestone,
 
-        reason:
-          "no email on file"
-
+        reason: "no email on file",
       });
-
     } else {
-
       try {
-
-        await sendReminderEmailToClient(
-          client,
-          milestone
-        );
-
+        await sendReminderEmailToClient(client, milestone);
 
         results.sent.push({
+          partyName: client.partyName,
 
-          partyName:
-            client.partyName,
+          emailId: client.emailId,
 
-          emailId:
-            client.emailId,
-
-          daysRemaining:
-            milestone
-
+          daysRemaining: milestone,
         });
-
       } catch (err) {
-
         results.failed.push({
+          partyName: client.partyName,
 
-          partyName:
-            client.partyName,
-
-          emailId:
-            client.emailId,
+          emailId: client.emailId,
 
           milestone,
 
-          error:
-            err.message
-
+          error: err.message,
         });
-
       }
-
     }
-
 
     // --------------------------------------------------------------
     // Employee email
     // --------------------------------------------------------------
 
     if (EMPLOYEE_EMAIL) {
-
       try {
-
-        await sendReminderEmailToEmployee(
-          client,
-          milestone
-        );
-
+        await sendReminderEmailToEmployee(client, milestone);
 
         results.employeeNotified.push({
+          partyName: client.partyName,
 
-          partyName:
-            client.partyName,
+          employeeEmail: EMPLOYEE_EMAIL,
 
-          employeeEmail:
-            EMPLOYEE_EMAIL,
-
-          daysRemaining:
-            milestone
-
+          daysRemaining: milestone,
         });
-
       } catch (err) {
-
         results.employeeFailed.push({
+          partyName: client.partyName,
 
-          partyName:
-            client.partyName,
-
-          employeeEmail:
-            EMPLOYEE_EMAIL,
+          employeeEmail: EMPLOYEE_EMAIL,
 
           milestone,
 
-          error:
-            err.message
-
+          error: err.message,
         });
-
       }
-
     }
-
 
     // --------------------------------------------------------------
     // Mark milestone as processed
     // --------------------------------------------------------------
 
-    client.remindersSent = [
-      ...alreadySent,
-      milestone
-    ];
-
+    client.remindersSent = [...alreadySent, milestone];
 
     await client.save();
-
   }
 
-
   return results;
-
 }
-
 
 // ==================================================================
 // Manual email reminder endpoint
 // ==================================================================
 
-app.post(
-  "/api/reminders/send-emails",
-  requireAuth,
-  async (req, res) => {
-
-    try {
-
-      if (
-        req.query.force === "1" ||
-        req.query.force === "true"
-      ) {
-
-        await Client.updateMany(
-          {},
-          {
-            $set: {
-              remindersSent: []
-            }
-          }
-        );
-
-        console.log(
-          "[reminders] force=1 — cleared remindersSent on all clients"
-        );
-
-      }
-
-
-      const results =
-        await runReminderEmailJob();
-
-
-      res.json(
-        results
+app.post("/api/reminders/send-emails", requireAuth, async (req, res) => {
+  try {
+    if (req.query.force === "1" || req.query.force === "true") {
+      await Client.updateMany(
+        {},
+        {
+          $set: {
+            remindersSent: [],
+          },
+        },
       );
 
-    } catch (e) {
-
-      res.status(500).json({
-        message:
-          e.message
-      });
-
+      console.log("[reminders] force=1 — cleared remindersSent on all clients");
     }
 
-  }
-);
+    const results = await runReminderEmailJob();
 
+    res.json(results);
+  } catch (e) {
+    res.status(500).json({
+      message: e.message,
+    });
+  }
+});
 
 // ==================================================================
 // Reminder debug endpoint
 // ==================================================================
 
-app.get(
-  "/api/reminders/debug",
-  requireAuth,
-  async (_, res) => {
+app.get("/api/reminders/debug", requireAuth, async (_, res) => {
+  try {
+    const clients = await Client.find({
+      expiredDate: {
+        $exists: true,
+      },
+    }).lean();
 
-    try {
+    const now = new Date();
 
-      const clients =
-        await Client.find({
-          expiredDate: {
-            $exists: true
-          }
-        }).lean();
+    const rows = clients.map((c) => {
+      const remaining = daysUntil(c.expiredDate);
 
+      const alreadySent = c.remindersSent || [];
 
-      const now =
-        new Date();
+      const milestone = currentMilestone(remaining);
 
+      const willSend = milestone !== null && !alreadySent.includes(milestone);
 
-      const rows =
-        clients.map(c => {
+      return {
+        partyName: c.partyName,
 
-          const remaining =
-            daysUntil(
-              c.expiredDate
-            );
+        emailId: c.emailId,
 
+        expiredDateISO: c.expiredDate,
 
-          const alreadySent =
-            c.remindersSent || [];
+        expiredDateLocal: new Date(c.expiredDate).toString(),
 
+        todayLocal: now.toString(),
 
-          const milestone =
-            currentMilestone(
-              remaining
-            );
+        daysRemaining: remaining,
 
+        currentMilestone: milestone,
 
-          const willSend =
-            milestone !== null &&
-            !alreadySent.includes(
-              milestone
-            );
+        remindersSent: alreadySent,
 
+        wouldSendMilestone: willSend ? milestone : null,
 
-          return {
+        wouldEmailClient: Boolean(willSend && c.emailId),
 
-            partyName:
-              c.partyName,
+        wouldEmailEmployee: Boolean(willSend && EMPLOYEE_EMAIL),
+      };
+    });
 
-            emailId:
-              c.emailId,
+    res.json({
+      employeeEmail: EMPLOYEE_EMAIL || null,
 
-            expiredDateISO:
-              c.expiredDate,
+      reminderDays: EMAIL_REMINDER_DAYS,
 
-            expiredDateLocal:
-              new Date(
-                c.expiredDate
-              ).toString(),
-
-            todayLocal:
-              now.toString(),
-
-            daysRemaining:
-              remaining,
-
-            currentMilestone:
-              milestone,
-
-            remindersSent:
-              alreadySent,
-
-            wouldSendMilestone:
-              willSend
-                ? milestone
-                : null,
-
-            wouldEmailClient:
-              Boolean(
-                willSend &&
-                c.emailId
-              ),
-
-            wouldEmailEmployee:
-              Boolean(
-                willSend &&
-                EMPLOYEE_EMAIL
-              )
-
-          };
-
-        });
-
-
-      res.json({
-
-        employeeEmail:
-          EMPLOYEE_EMAIL ||
-          null,
-
-        reminderDays:
-          EMAIL_REMINDER_DAYS,
-
-        rows
-
-      });
-
-    } catch (e) {
-
-      res.status(500).json({
-        message:
-          e.message
-      });
-
-    }
-
+      rows,
+    });
+  } catch (e) {
+    res.status(500).json({
+      message: e.message,
+    });
   }
-);
-
+});
 
 // ==================================================================
 // EXTERNAL CRON - cron-job.org
@@ -2642,309 +1571,188 @@ app.get(
 // Example:
 //
 // https://service-renewal-reminder-backend.onrender.com/api/reminders/cron?key=YOUR_SECRET
-//
 // ==================================================================
 
-app.get(
-  "/api/reminders/cron",
-  async (req, res) => {
+app.get("/api/reminders/cron", async (req, res) => {
+  try {
+    const providedKey = String(req.query.key || "");
 
-    try {
+    const expectedKey = String(process.env.REMINDER_CRON_KEY || "");
 
-      const providedKey =
-        String(
-          req.query.key || ""
-        );
+    // ------------------------------------------------------------
+    // Make sure the Render environment variable exists
+    // ------------------------------------------------------------
 
-
-      const expectedKey =
-        String(
-          process.env.REMINDER_CRON_KEY || ""
-        );
-
-
-      // ------------------------------------------------------------
-      // Make sure the Render environment variable exists
-      // ------------------------------------------------------------
-
-      if (!expectedKey) {
-
-        console.error(
-          "[external-cron] REMINDER_CRON_KEY is not configured."
-        );
-
-
-        return res.status(500).json({
-
-          success: false,
-
-          message:
-            "REMINDER_CRON_KEY is not configured on the server."
-
-        });
-
-      }
-
-
-      // ------------------------------------------------------------
-      // Validate cron secret
-      // ------------------------------------------------------------
-
-      if (
-        !providedKey ||
-        providedKey !== expectedKey
-      ) {
-
-        console.warn(
-          "[external-cron] Unauthorized cron request."
-        );
-
-
-        return res.status(401).json({
-
-          success: false,
-
-          message:
-            "Unauthorized."
-
-        });
-
-      }
-
-
-      console.log(
-        "==============================================================="
-      );
-
-      console.log(
-        `[external-cron] Reminder job started: ${new Date().toISOString()}`
-      );
-
-      console.log(
-        "==============================================================="
-      );
-
-
-      // ------------------------------------------------------------
-      // Run reminder email job
-      // ------------------------------------------------------------
-
-      const results =
-        await runReminderEmailJob();
-
-
-      // ------------------------------------------------------------
-      // Log results
-      // ------------------------------------------------------------
-
-      console.log(
-        `[external-cron] Client emails sent: ${results.sent.length}`
-      );
-
-      console.log(
-        `[external-cron] Client emails skipped: ${results.skipped.length}`
-      );
-
-      console.log(
-        `[external-cron] Client emails failed: ${results.failed.length}`
-      );
-
-      console.log(
-        `[external-cron] Employee emails sent: ${results.employeeNotified.length}`
-      );
-
-      console.log(
-        `[external-cron] Employee emails failed: ${results.employeeFailed.length}`
-      );
-
-
-      results.sent.forEach(
-        item => {
-
-          console.log(
-            `[external-cron] CLIENT -> ${item.partyName} <${item.emailId}> (${item.daysRemaining}d)`
-          );
-
-        }
-      );
-
-
-      results.failed.forEach(
-        item => {
-
-          console.error(
-            `[external-cron] CLIENT FAILED -> ${item.partyName} <${item.emailId}> (${item.milestone}d): ${item.error}`
-          );
-
-        }
-      );
-
-
-      results.skipped.forEach(
-        item => {
-
-          console.warn(
-            `[external-cron] SKIPPED -> ${item.partyName} (${item.milestone}d): ${item.reason}`
-          );
-
-        }
-      );
-
-
-      results.employeeNotified.forEach(
-        item => {
-
-          console.log(
-            `[external-cron] EMPLOYEE -> ${EMPLOYEE_NAME} <${item.employeeEmail}> about ${item.partyName} (${item.daysRemaining}d)`
-          );
-
-        }
-      );
-
-
-      results.employeeFailed.forEach(
-        item => {
-
-          console.error(
-            `[external-cron] EMPLOYEE FAILED -> <${item.employeeEmail}> about ${item.partyName} (${item.milestone}d): ${item.error}`
-          );
-
-        }
-      );
-
-
-      console.log(
-        `[external-cron] Reminder job completed: ${new Date().toISOString()}`
-      );
-
-
-      return res.json({
-
-        success: true,
-
-        message:
-          "Reminder email job completed.",
-
-        executedAt:
-          new Date().toISOString(),
-
-        summary: {
-
-          clientEmailsSent:
-            results.sent.length,
-
-          clientEmailsSkipped:
-            results.skipped.length,
-
-          clientEmailsFailed:
-            results.failed.length,
-
-          employeeEmailsSent:
-            results.employeeNotified.length,
-
-          employeeEmailsFailed:
-            results.employeeFailed.length
-
-        },
-
-        results
-
-      });
-
-
-    } catch (error) {
-
-      console.error(
-        "[external-cron] Reminder job failed:",
-        error
-      );
-
+    if (!expectedKey) {
+      console.error("[external-cron] REMINDER_CRON_KEY is not configured.");
 
       return res.status(500).json({
-
         success: false,
 
-        message:
-          error.message ||
-          "Reminder job failed."
-
+        message: "REMINDER_CRON_KEY is not configured on the server.",
       });
-
     }
 
-  }
-);
+    // ------------------------------------------------------------
+    // Validate cron secret
+    // ------------------------------------------------------------
 
+    if (!providedKey || providedKey !== expectedKey) {
+      console.warn("[external-cron] Unauthorized cron request.");
+
+      return res.status(401).json({
+        success: false,
+
+        message: "Unauthorized.",
+      });
+    }
+
+    console.log(
+      "===============================================================",
+    );
+
+    console.log(
+      `[external-cron] Reminder job started: ${new Date().toISOString()}`,
+    );
+
+    console.log(
+      "===============================================================",
+    );
+
+    // ------------------------------------------------------------
+    // Run reminder email job
+    // ------------------------------------------------------------
+
+    const results = await runReminderEmailJob();
+
+    // ------------------------------------------------------------
+    // Log results
+    // ------------------------------------------------------------
+
+    console.log(`[external-cron] Client emails sent: ${results.sent.length}`);
+
+    console.log(
+      `[external-cron] Client emails skipped: ${results.skipped.length}`,
+    );
+
+    console.log(
+      `[external-cron] Client emails failed: ${results.failed.length}`,
+    );
+
+    console.log(
+      `[external-cron] Employee emails sent: ${results.employeeNotified.length}`,
+    );
+
+    console.log(
+      `[external-cron] Employee emails failed: ${results.employeeFailed.length}`,
+    );
+
+    results.sent.forEach((item) => {
+      console.log(
+        `[external-cron] CLIENT -> ${item.partyName} <${item.emailId}> (${item.daysRemaining}d)`,
+      );
+    });
+
+    results.failed.forEach((item) => {
+      console.error(
+        `[external-cron] CLIENT FAILED -> ${item.partyName} <${item.emailId}> (${item.milestone}d): ${item.error}`,
+      );
+    });
+
+    results.skipped.forEach((item) => {
+      console.warn(
+        `[external-cron] SKIPPED -> ${item.partyName} (${item.milestone}d): ${item.reason}`,
+      );
+    });
+
+    results.employeeNotified.forEach((item) => {
+      console.log(
+        `[external-cron] EMPLOYEE -> ${EMPLOYEE_NAME} <${item.employeeEmail}> about ${item.partyName} (${item.daysRemaining}d)`,
+      );
+    });
+
+    results.employeeFailed.forEach((item) => {
+      console.error(
+        `[external-cron] EMPLOYEE FAILED -> <${item.employeeEmail}> about ${item.partyName} (${item.milestone}d): ${item.error}`,
+      );
+    });
+
+    console.log(
+      `[external-cron] Reminder job completed: ${new Date().toISOString()}`,
+    );
+
+    return res.json({
+      success: true,
+
+      message: "Reminder email job completed.",
+
+      executedAt: new Date().toISOString(),
+
+      summary: {
+        clientEmailsSent: results.sent.length,
+
+        clientEmailsSkipped: results.skipped.length,
+
+        clientEmailsFailed: results.failed.length,
+
+        employeeEmailsSent: results.employeeNotified.length,
+
+        employeeEmailsFailed: results.employeeFailed.length,
+      },
+
+      results,
+    });
+  } catch (error) {
+    console.error("[external-cron] Reminder job failed:", error);
+
+    return res.status(500).json({
+      success: false,
+
+      message: error.message || "Reminder job failed.",
+    });
+  }
+});
 
 // ==================================================================
 // IMPORTANT
 // ==================================================================
-//
 // INTERNAL node-cron has been intentionally REMOVED.
-//
 // cron-job.org will trigger:
-//
 // GET /api/reminders/cron?key=YOUR_SECRET
-//
 // This prevents duplicate emails when Render is running.
 // ==================================================================
-
-
 // ==================================================================
 // Startup
 // ==================================================================
 
 mongoose
-  .connect(
-    process.env.MONGO_URI
-  )
+  .connect(process.env.MONGO_URI)
 
-  .then(
-    async () => {
+  .then(async () => {
+    await ensureDefaultAdmin();
 
-      await ensureDefaultAdmin();
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`Backend running on port ${port}`);
 
+      console.log(`External cron endpoint: /api/reminders/cron`);
 
-      app.listen(
-        port,
-        "0.0.0.0",
-        () => {
+      console.log(`SMTP host: ${process.env.SMTP_HOST || "not configured"}`);
+    });
+  })
 
-          console.log(
-            `Backend running on port ${port}`
-          );
+  .catch((err) => {
+    console.error("MongoDB connection failed:", err.message);
 
-          console.log(
-            `External cron endpoint: /api/reminders/cron`
-          );
-
-          console.log(
-            `SMTP host: ${process.env.SMTP_HOST || "not configured"}`
-          );
-
-        }
-      );
-
-    }
-  )
-
-  .catch(
-    err => {
-
-      console.error(
-        "MongoDB connection failed:",
-        err.message
-      );
-
-      process.exit(1);
-
-    }
-  );
+    process.exit(1);
+  });
 
 
 
-  // take as it is just add here cron-org for external cron 
 
+
+
+
+// take as it is just add here cron-org for external cron
 
 // import express from "express";
 // import cors from "cors";
@@ -3737,12 +2545,8 @@ mongoose
 //     process.exit(1);
 //   });
 
-
-
-
 // wrong - today is - 16th sep 26, expired date 21th sep 26 ( 17, 18, 19, 20, 21 = 4 days )
 // right - today is - 16th sep 26, expired date 21th sep 26 ( 17, 18, 19, 20, 21 = 5 days )
-
 
 // import express from "express";
 // import cors from "cors";
@@ -4458,7 +3262,6 @@ mongoose
 // });
 
 // // mail service end here
-
 
 // // ==================================================================
 // // Startup
