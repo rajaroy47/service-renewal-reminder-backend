@@ -888,14 +888,30 @@ app.get("/api/reminders", async (_, res) => {
 
 const getHyphenatedDateTime = (ts = Date.now()) => {
   const date = new Date(ts);
-  const d = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
-  const t = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toLowerCase().replace(' ', '-');
+
+  const d = date
+    .toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .replace(/ /g, "-"); // "21-Sep-2026"
+
+  const t = date
+    .toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })
+    .toLowerCase() // "01:45:12 pm"
+    .replace(/:/g, "-") // "01-45-12 pm"
+    .replace(/\s+/g, "-"); // "01-45-12-pm"
+
   return `${d}-${t}`;
 };
 
-// Usage:
-// console.log(getHyphenatedDateTime()); // "21-Sep-2026-01:42:15-pm"
-
+// Output: "21-Sep-2026-01-45-12-pm"
 
 app.get("/api/export/excel", requireAuth, async (_, res) => {
   try {
@@ -976,24 +992,23 @@ app.get("/api/export/excel", requireAuth, async (_, res) => {
       cellDates: true,
     });
 
+    const filename = `clients-${getHyphenatedDateTime()}.xlsx`;
+    // → "clients-21-Sep-2026-01-45-12-pm.xlsx"
+
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
 
-    // res.setHeader("Content-Disposition", 'attachment; filename="clients.xlsx"');
-
-    const filename = `clients-${getHyphenatedDateTime()}.xlsx`; 
-    // Result looks like: "clients-21-Sep-2026-01:45:12-pm.xlsx"
-
-    // 3. Set your response headers
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    // RFC 5987 encoding for safe non-ASCII / special chars
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    );
 
     res.send(buffer);
   } catch (e) {
-    res.status(500).json({
-      message: e.message,
-    });
+    res.status(500).json({ message: e.message });
   }
 });
 
@@ -1745,12 +1760,6 @@ mongoose
 
     process.exit(1);
   });
-
-
-
-
-
-
 
 // take as it is just add here cron-org for external cron
 
