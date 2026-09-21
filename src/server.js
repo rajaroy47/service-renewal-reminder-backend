@@ -963,7 +963,9 @@ app.get("/api/reminders", async (_, res) => {
 // ==================================================================
 
 const getHyphenatedDateTime = (ts = Date.now()) => {
-  const date = new Date(ts);
+  // 5.5 hours converted to milliseconds: 5.5 * 60 * 60 * 1000 = 19,800,000
+  const adjustedTs = ts + 5.5 * 60 * 60 * 1000;
+  const date = new Date(adjustedTs);
 
   const d = date
     .toLocaleDateString("en-GB", {
@@ -986,6 +988,7 @@ const getHyphenatedDateTime = (ts = Date.now()) => {
 
   return `${d}-${t}`;
 };
+
 
 app.get("/api/export/excel", requireAuth, async (_, res) => {
   try {
