@@ -16,6 +16,7 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN?.split(",") || "*",
+    exposedHeaders: ["Content-Disposition"],   // 👈 ADD THIS LINE
   }),
 );
 
@@ -1760,6 +1761,7 @@ mongoose
 
     process.exit(1);
   });
+
 
 // take as it is just add here cron-org for external cron
 
